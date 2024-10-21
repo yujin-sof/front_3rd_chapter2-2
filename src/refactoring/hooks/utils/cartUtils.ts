@@ -90,7 +90,6 @@ export const calculateCartTotal = (cart: CartItem[], selectedCoupon: Coupon | nu
 export const updateCartItemQuantity = (cart: CartItem[], productId: string, newQuantity: number): CartItem[] => {
     // 상품의 재고를 가져오는 함수 (실제 구현에서 재고를 가져오는 방법에 따라 조정 필요)
     const getProductById = (id: string) => {
-      // 이 부분은 실제로 데이터베이스나 다른 소스에서 상품 정보를 가져오는 로직으로 대체해야 합니다.
       return cart.find(item => item.product.id === id)?.product;
     };
   
