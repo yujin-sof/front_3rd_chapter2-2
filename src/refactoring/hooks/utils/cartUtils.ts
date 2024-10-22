@@ -1,7 +1,7 @@
 import { CartItem, Coupon } from "../../../types";
 
+
 export const calculateItemTotal = (item: CartItem) => {
-// 조금 찝찝하니까 다시 확인해보기, 이 함수가 사용되는 곳이 없음.
 
   const clone = [structuredClone(item)];
 
@@ -86,6 +86,7 @@ export const calculateCartTotal = (cart: CartItem[], selectedCoupon: Coupon | nu
     totalDiscount: Math.round(totalDiscount),
   };
 };
+
 
 export const updateCartItemQuantity = (cart: CartItem[], productId: string, newQuantity: number): CartItem[] => {
     // 상품의 재고를 가져오는 함수 (실제 구현에서 재고를 가져오는 방법에 따라 조정 필요)

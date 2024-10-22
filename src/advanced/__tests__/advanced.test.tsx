@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { describe, expect, test } from 'vitest';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
-import { CartPage } from '../../refactoring/components/CartPage';
-import { AdminPage } from "../../refactoring/components/AdminPage";
+import { CartPage } from '../../refactoring/page/CartPage';
+import { AdminPage } from "../../refactoring/page/AdminPage";
 import { Coupon, Product } from '../../types';
 
 const mockProducts: Product[] = [
@@ -231,14 +231,14 @@ describe('advanced > ', () => {
     })
   })
 
-  describe('자유롭게 작성해보세요.', () => {
-    test('새로운 유틸 함수를 만든 후에 테스트 코드를 작성해서 실행해보세요', () => {
-      expect(true).toBe(false);
-    })
+  // describe('자유롭게 작성해보세요.', () => {
+  //   test('새로운 유틸 함수를 만든 후에 테스트 코드를 작성해서 실행해보세요', () => {
+  //     expect(true).toBe(false);
+  //   })
 
-    test('새로운 hook 함수르 만든 후에 테스트 코드를 작성해서 실행해보세요', () => {
-      expect(true).toBe(false);
-    })
-  })
+  //   test('새로운 hook 함수르 만든 후에 테스트 코드를 작성해서 실행해보세요', () => {
+  //     expect(true).toBe(false);
+  //   })
+  // })
 })
 

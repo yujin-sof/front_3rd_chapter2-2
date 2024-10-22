@@ -11,5 +11,6 @@ export const useCoupons = (initialCoupons: Coupon[]) => {
 
   return { 
     coupons, 
-    addCoupon, };
+    addCoupon, 
+  };
 };
