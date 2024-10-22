@@ -12,11 +12,7 @@ export const AdminProductSection = ( {products, onProductUpdate, onProductAdd}: 
     const [openProductIds, setOpenProductIds] = useState<Set<string>>(new Set());  // 열려있는 상품의 ID들을 Set으로 관리합니다.
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);  // 현재 수정 중인 상품.
     const [newDiscount, setNewDiscount] = useState<Discount>({ quantity: 0, rate: 0 });  // 새로운 할인 정보.
-
-    // 새로운 상품 추가 폼을 표시할지 여부.
-    const [showNewProductForm, setShowNewProductForm] = useState(false);
-
-    // 추가할 새로운 상품의 초기 정보.
+    const [showNewProductForm, setShowNewProductForm] = useState(false); // 새로운 상품 추가 폼을 표시할지 여부.
     const [newProduct, setNewProduct] = useState<Omit<Product, 'id'>>({
         name: '',
         price: 0,
@@ -24,39 +20,49 @@ export const AdminProductSection = ( {products, onProductUpdate, onProductAdd}: 
         discounts: []
     });
 
+
     // 특정 상품의 상세 정보를 열거나 닫는 함수.
-    const toggleProductAccordion = (productId: string) => {
-        setOpenProductIds(prev => {
+    function toggleProductAccordion (productId: string) {
+      setOpenProductIds(prev => {
         const newSet = new Set(prev);
-        if (newSet.has(productId)) {
-            newSet.delete(productId);
-        } else {
-            newSet.add(productId);
-        }
-        return newSet;
-        });
+        newSet.has(productId) ? newSet.delete(productId) : newSet.add(productId);
+      return newSet;
+      });
     };
 
-    // handleEditProduct 함수 수정 // 선택한 상품을 수정할 준비를 하는 함수.
+    // 선택한 상품을 수정할 준비를 하는 함수.
     const handleEditProduct = (product: Product) => {
         setEditingProduct({...product});
     };
 
-    // 새로운 핸들러 함수 추가 // 수정 중인 상품의 이름으ㄹ 업데이트하는 함수.
-    const handleProductNameUpdate = (productId: string, newName: string) => {
-        if (editingProduct && editingProduct.id === productId) {
+    
+
+    // 계산 : 수정상품 이름 업데이트
+    const productNameUpdate = (productId: string, newName: string) => {
+      if (editingProduct && editingProduct.id === productId) {
         const updatedProduct = { ...editingProduct, name: newName };
         setEditingProduct(updatedProduct);
         }
+    }
+    // 수정 중인 상품의 이름으ㄹ 업데이트하는 함수.
+    const handleProductNameUpdate = (productId: string, newName: string) => {
+      productNameUpdate(productId, newName);
     };
 
-    // 새로운 핸들러 함수 추가  // 수정 중인 상품의 가격을 업데이트하는 함수.
-    const handlePriceUpdate = (productId: string, newPrice: number) => {
-        if (editingProduct && editingProduct.id === productId) {
+
+    // 계산 : 수정상품 가격 업데이트
+    const priceUpdate = (productId: string, newPrice: number) => {
+      if (editingProduct && editingProduct.id === productId) {
         const updatedProduct = { ...editingProduct, price: newPrice };
         setEditingProduct(updatedProduct);
         }
+    }
+    // 수정 중인 상품의 가격을 업데이트하는 함수.
+    const handlePriceUpdate = (productId: string, newPrice: number) => {
+      priceUpdate(productId, newPrice);
     };
+
+
 
     // 새로운 핸들러 함수 추가  // 수정 중인 상품의 재고를 각각 업데이트하는 함수.
     const handleStockUpdate = (productId: string, newStock: number) => {
