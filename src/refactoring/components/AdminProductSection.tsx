@@ -1,5 +1,7 @@
-import { useState } from 'react';
-import { Discount, Product } from '../../types.ts';
+import { Product } from '../../types.ts';
+import { useOpenProduct } from '../hooks/admin/useOpenProduct.ts'
+import { useEditProduct } from '../hooks/admin/useUpdateProduct.ts'
+import { useAddProduct } from '../hooks/admin/useAddProduct.ts'
 
 interface Props {
     products: Product[];
@@ -9,118 +11,9 @@ interface Props {
 
 export const AdminProductSection = ( {products, onProductUpdate, onProductAdd}: Props ) => {
 
-    const [openProductIds, setOpenProductIds] = useState<Set<string>>(new Set());  // 열려있는 상품의 ID들을 Set으로 관리합니다.
-    const [editingProduct, setEditingProduct] = useState<Product | null>(null);  // 현재 수정 중인 상품.
-    const [newDiscount, setNewDiscount] = useState<Discount>({ quantity: 0, rate: 0 });  // 새로운 할인 정보.
-    const [showNewProductForm, setShowNewProductForm] = useState(false); // 새로운 상품 추가 폼을 표시할지 여부.
-    const [newProduct, setNewProduct] = useState<Omit<Product, 'id'>>({
-        name: '',
-        price: 0,
-        stock: 0,
-        discounts: []
-    });
-
-
-    // 특정 상품의 상세 정보를 열거나 닫는 함수.
-    function toggleProductAccordion (productId: string) {
-      setOpenProductIds(prev => {
-        const newSet = new Set(prev);
-        newSet.has(productId) ? newSet.delete(productId) : newSet.add(productId);
-      return newSet;
-      });
-    };
-
-    // 선택한 상품을 수정할 준비를 하는 함수.
-    const handleEditProduct = (product: Product) => {
-        setEditingProduct({...product});
-    };
-
-    
-
-    // 계산 : 수정상품 이름 업데이트
-    const productNameUpdate = (productId: string, newName: string) => {
-      if (editingProduct && editingProduct.id === productId) {
-        const updatedProduct = { ...editingProduct, name: newName };
-        setEditingProduct(updatedProduct);
-        }
-    }
-    // 수정 중인 상품의 이름으ㄹ 업데이트하는 함수.
-    const handleProductNameUpdate = (productId: string, newName: string) => {
-      productNameUpdate(productId, newName);
-    };
-
-
-    // 계산 : 수정상품 가격 업데이트
-    const priceUpdate = (productId: string, newPrice: number) => {
-      if (editingProduct && editingProduct.id === productId) {
-        const updatedProduct = { ...editingProduct, price: newPrice };
-        setEditingProduct(updatedProduct);
-        }
-    }
-    // 수정 중인 상품의 가격을 업데이트하는 함수.
-    const handlePriceUpdate = (productId: string, newPrice: number) => {
-      priceUpdate(productId, newPrice);
-    };
-
-
-
-    // 새로운 핸들러 함수 추가  // 수정 중인 상품의 재고를 각각 업데이트하는 함수.
-    const handleStockUpdate = (productId: string, newStock: number) => {
-        const updatedProduct = products.find(p => p.id === productId);
-        if (updatedProduct) {
-        const newProduct = { ...updatedProduct, stock: newStock };
-        onProductUpdate(newProduct);
-        setEditingProduct(newProduct);
-        }
-    };
-
-    // 수정 완료 핸들러 함수 추가  // 상품 수정을 완료하고 업데이트하는 함수.
-    const handleEditComplete = () => {
-        if (editingProduct) {
-        onProductUpdate(editingProduct);
-        setEditingProduct(null);
-        }
-    };
-
-    //  상품에 할인 정보를 추가하는 함수.
-    const handleAddDiscount = (productId: string) => {
-        const updatedProduct = products.find(p => p.id === productId);
-        if (updatedProduct && editingProduct) {
-        const newProduct = {
-            ...updatedProduct,
-            discounts: [...updatedProduct.discounts, newDiscount]
-        };
-        onProductUpdate(newProduct);
-        setEditingProduct(newProduct);
-        setNewDiscount({ quantity: 0, rate: 0 });
-        }
-    };
-
-    //  특정 상품에서 할인 정보를 제거하는 함수.
-    const handleRemoveDiscount = (productId: string, index: number) => {
-        const updatedProduct = products.find(p => p.id === productId);
-        if (updatedProduct) {
-        const newProduct = {
-            ...updatedProduct,
-            discounts: updatedProduct.discounts.filter((_, i) => i !== index)
-        };
-        onProductUpdate(newProduct);
-        setEditingProduct(newProduct);
-        }
-    };
-
-    // 새로운 상품을 추가하는 함수.
-    const handleAddNewProduct = () => {
-        const productWithId = { ...newProduct, id: Date.now().toString() };
-        onProductAdd(productWithId);
-        setNewProduct({
-        name: '',
-        price: 0,
-        stock: 0,
-        discounts: []
-        });
-        setShowNewProductForm(false);
-    };
+    const { toggleProductAccordion, openProductIds } = useOpenProduct();
+    const { editingProduct, newDiscount, setNewDiscount, handleEditComplete, handleEditProduct, handleNameUpdate, handlePriceUpdate, handleStockUpdate, handleAddDiscount, handleRemoveDiscount } = useEditProduct({products, onProductUpdate});
+    const { showNewProductForm, setShowNewProductForm, newProduct, setNewProduct,handleAddNewProduct } = useAddProduct(onProductAdd);
 
 
     return (
@@ -192,7 +85,7 @@ export const AdminProductSection = ( {products, onProductUpdate, onProductAdd}: 
                         <input
                           type="text"
                           value={editingProduct.name}
-                          onChange={(e) => handleProductNameUpdate(product.id, e.target.value)}
+                          onChange={(e) => handleNameUpdate(product.id, e.target.value)}
                           className="w-full p-2 border rounded"
                         />
                       </div>
