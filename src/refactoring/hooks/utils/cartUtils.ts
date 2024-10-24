@@ -113,12 +113,12 @@ export const updateCartItemQuantity = (cart: CartItem[], productId: string, newQ
     return updatedCart;
 };
 
-  // 상품에 적용 가능한 할인 중 최대 할인율을 계산하는 함수입니다. 각 상품에는 여러 개의 할인 조건이 있을 수 있는데, 그중 가장 높은 할인율을 반환합니다.
+  // 상품에 적용 가능한 할인 중 최대 할인율을 계산하는 함수
   export const getMaxDiscount = (discounts: { quantity: number; rate: number }[]) => {
     return discounts.reduce((max, discount) => Math.max(max, discount.rate), 0);
   };
 
-  // 장바구니에 담긴 상품의 수량을 고려하여 남은 재고를 계산합니다. 장바구니에 담긴 수량이 있으면 해당 수량을 재고에서 뺍니다.
+  // 장바구니에 담긴 상품의 수량을 고려하여 남은 재고 계산
   export const getRemainingStock = (product: Product, cart: CartItem[]) => {
     const cartItem = cart.find(item => item.product.id === product.id);
     return product.stock - (cartItem?.quantity || 0);

@@ -1,10 +1,15 @@
 import { useState } from "react";
-import { describe, expect, test } from 'vitest';
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { describe, expect, test, vi, it } from 'vitest';
+import { act, fireEvent, render, screen, within, renderHook } from '@testing-library/react';
 import { CartPage } from '../../refactoring/page/CartPage';
 import { AdminPage } from "../../refactoring/page/AdminPage";
 import { Coupon, Product } from '../../types';
-import { updateProductField } from "../../refactoring/hooks/utils/productUtils";
+import { updateProductField, applyProductUpdate } from "../../refactoring/hooks/utils/productUtils";
+import { getRemainingStock } from "../../refactoring/hooks/utils/cartUtils"
+import { useAddProduct } from "../../refactoring/hooks/admin/useAddProduct"
+import { useOpenProduct } from "../../refactoring/hooks/admin/useOpenProduct"
+import { useEditProduct } from "../../refactoring/hooks/admin/useUpdateProduct"
+
 
 const mockProducts: Product[] = [
   {
@@ -160,7 +165,6 @@ describe('advanced > ', () => {
     test('관리자 페이지 테스트 > ', async () => {
       render(<TestAdminPage/>);
 
-
       const $product1 = screen.getByTestId('product-1');
 
       // 1. 새로운 상품 추가
@@ -232,19 +236,162 @@ describe('advanced > ', () => {
     })
   })
 
-  describe('유틸함수 테스트', () => {
-    test('새로운 유틸 함수를 만든 후에 테스트 코드를 작성해서 실행해보세요', () => {
-      expect(true).toBe(false);
-    })
-
-  })
 
 
   describe('유틸함수 테스트', () => {
+    const productTest = { id: 'p1', name: '상품1', price: 10000, stock: 20, discounts: [{ quantity: 10, rate: 0.1 }] };
+    
+    test('상품 이름을 업데이트 하는 함수', () => {
+      const updatedProduct = updateProductField(productTest, '상품7', 'name');
+      expect(updatedProduct.name).toBe('상품7');
+    })
 
-    test('새로운 hook 함수르 만든 후에 테스트 코드를 작성해서 실행해보세요', () => {
-      expect(true).toBe(false);
+    test('상품 가격을 업데이트 하는 함수', () => {
+      const updatedProduct = updateProductField(productTest, 1500, 'price');
+      expect(updatedProduct.price).toBe(1500);
+    })
+    
+    test('상품의 재고를 업데이트 하는 함수', () => {
+      const updateFn = (productTest: any): any => ({...productTest, stock: '5' })
+      const updatedProduct = applyProductUpdate(productTest, updateFn);
+
+      expect(updatedProduct.stock).toBe('5');
+    })
+
+    test('장바구니에 담긴 상품의 수량을 고려하여 남은 재고를 계산하는 함수', () => {
+      const cart = [{product: productTest, quantity: 4}]
+      const remainingStock = getRemainingStock(productTest, cart)
+
+      expect(remainingStock).toBe(16);
     })
   })
+
+
+
+  describe('커스텀 훅 테스트', () => {
+    const mockOnProductAdd = vi.fn(); 
+
+    it('새로운 상품 상태를 업데이트 한다', () => {
+      const { result } = renderHook(() => useAddProduct(mockOnProductAdd));
+
+      act(() => {
+        result.current.setNewProduct({
+          name: 'New Product',
+          price: 100,
+          stock: 10,
+          discounts: [],
+        });
+      });
+  
+      expect(result.current.newProduct).toEqual({
+        name: 'New Product',
+        price: 100,
+        stock: 10,
+        discounts: [],
+      });
+    });
+
+
+
+    it('특정 상품의 ID 토글 기능', () => {
+      const { result } = renderHook(() => useOpenProduct());
+      
+      // 특정 상품 ID 추가
+      act(() => {
+        result.current.toggleProductAccordion('product1');
+      });
+  
+      expect(result.current.openProductIds).toEqual(new Set(['product1']));
+  
+      // 같은 상품 ID 제거
+      act(() => {
+        result.current.toggleProductAccordion('product1');
+      });
+  
+      expect(result.current.openProductIds).toEqual(new Set());
+    });
+  
+    it('여러 상품 ID를 열 수 있다', () => {
+      const { result } = renderHook(() => useOpenProduct());
+  
+      act(() => {
+        result.current.toggleProductAccordion('product1');
+      });
+  
+      expect(result.current.openProductIds).toEqual(new Set(['product1']));
+  
+      act(() => {
+        result.current.toggleProductAccordion('product2');
+      });
+  
+      expect(result.current.openProductIds).toEqual(new Set(['product1', 'product2']));
+  
+      // 'product1' 제거
+      act(() => {
+        result.current.toggleProductAccordion('product1');
+      });
+  
+      expect(result.current.openProductIds).toEqual(new Set(['product2']));
+    });
+
+
+  const mockOnProductUpdate = vi.fn(); // 상품 업데이트를 위한 mock 함수
+  const products: Product[] = [
+    { id: '1', name: '상품1', price: 100, stock: 10, discounts: [{ quantity: 10, rate: 0.1 }] },
+    { id: '2', name: '상품2', price: 200, stock: 20,discounts: [{ quantity: 10, rate: 0.15 }] },
+  ];
+
+
+  it('handleEditProduct가 호출될 때 상품수정 설정', () => {
+    const { result } = renderHook(() => useEditProduct({ products, onProductUpdate: mockOnProductUpdate }));
+
+    act(() => {
+      result.current.handleEditProduct(products[0]);
+    });
+
+    expect(result.current.editingProduct).toEqual(products[0]);
+  });
+
+  it('handleNameUpdate가 호출되면 상품 이름을 업데이트', () => {
+    const { result } = renderHook(() => useEditProduct({ products, onProductUpdate: mockOnProductUpdate }));
+
+    act(() => {
+      result.current.handleEditProduct(products[0]);
+    });
+    act(() => {
+      result.current.handleNameUpdate('1', '상품1 변경');
+    });
+
+
+    expect(result.current.editingProduct?.name).toBe('상품1 변경');
+  });
+
+  it('handPriceUpdate가 호출되면 제품 가격을 업데이트', () => {
+    const { result } = renderHook(() => useEditProduct({ products, onProductUpdate: mockOnProductUpdate }));
+
+    act(() => {
+      result.current.handleEditProduct(products[0]);
+    });
+    act(() => {
+      result.current.handlePriceUpdate('1', 150);
+    });
+
+    expect(result.current.editingProduct?.price).toBe(150);
+  });
+
+  it('handStockUpdate가 호출되면 재고를 업데이트', () => {
+    const { result } = renderHook(() => useEditProduct({ products, onProductUpdate: mockOnProductUpdate }));
+
+    act(() => {
+      result.current.handleEditProduct(products[0]);
+      result.current.handleStockUpdate('1', 15);
+    });
+
+    expect(mockOnProductUpdate).toHaveBeenCalledWith({
+      ...products[0],
+      stock: 15,
+    });
+  });
+
+  });
 })
-
