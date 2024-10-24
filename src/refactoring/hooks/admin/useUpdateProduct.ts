@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Discount, Product } from '../../../types.ts';
+import { updateProductField, applyProductUpdate } from '../utils/productUtils.ts'
 
 interface Props {
     products: Product[];
@@ -12,7 +13,7 @@ export const useEditProduct = ({products, onProductUpdate}: Props) => {
 
     const productEditUpdate = (productId: string, newValue: string | number, field: 'name' | 'price') => {
         if (editingProduct && editingProduct.id === productId) {
-          const updatedProduct = { ...editingProduct, [field]: newValue };
+          const updatedProduct = updateProductField(editingProduct, newValue, field);
           setEditingProduct(updatedProduct);
           return updatedProduct;
         }
@@ -22,7 +23,7 @@ export const useEditProduct = ({products, onProductUpdate}: Props) => {
     const updateProduct = (productId: string, updateFn: (product: Product) => Product) => {
         const product = products.find((p) => p.id === productId);
         if (product) {
-            const updatedProduct = updateFn(product);
+            const updatedProduct = applyProductUpdate(product, updateFn);
             onProductUpdate(updatedProduct);
             setEditingProduct(updatedProduct);
             return updatedProduct;
@@ -46,38 +47,38 @@ export const useEditProduct = ({products, onProductUpdate}: Props) => {
 
     // 수정 중인 상품의 이름 업데이트하는 함수.
     function handleNameUpdate (productId: string, newName: string) {
-    productEditUpdate(productId, newName, 'name');
+        productEditUpdate(productId, newName, 'name');
     };
 
     // 수정 중인 상품의 가격 업데이트하는 함수.
     function handlePriceUpdate (productId: string, newPrice: number) {
-    productEditUpdate(productId, newPrice, 'price');
+        productEditUpdate(productId, newPrice, 'price');
     };
 
 
     // 수정 중인 상품의 재고를 각각 업데이트하는 함수.
     function handleStockUpdate (productId: string, newStock: number) {
-    updateProduct(productId, (product) => ({
-        ...product,
-        stock: newStock,
-    }));
+        updateProduct(productId, (product) => ({
+            ...product,
+            stock: newStock,
+        }));
     };
 
     //  상품에 할인 정보를 추가하는 함수.
     function handleAddDiscount (productId: string) {
-    updateProduct(productId, (product) => ({
-        ...product,
-        discounts: [...product.discounts, newDiscount],
-    }));
-    setNewDiscount({ quantity: 0, rate: 0 });
+        updateProduct(productId, (product) => ({
+            ...product,
+            discounts: [...product.discounts, newDiscount],
+        }));
+        setNewDiscount({ quantity: 0, rate: 0 });
     };
 
     //  특정 상품에서 할인 정보를 제거하는 함수.
     function handleRemoveDiscount (productId: string, index: number) {
-    updateProduct(productId, (product) => ({
-        ...product,
-        discounts: product.discounts.filter((_, i) => i !== index),
-    }));
+        updateProduct(productId, (product) => ({
+            ...product,
+            discounts: product.discounts.filter((_, i) => i !== index),
+        }));
     };
 
 
